@@ -3,6 +3,61 @@
 #include"Interpolation.h"
 using namespace std;
 
+long double Basis0(long double x)	//Technically, Basis0-3 should only be called if x>=0, but if you're doing extrapolation, this is how it is done.
+{
+	if(x <= 2)
+		return(-pow((x-2.)/2.,3));
+	return(0);
+}
+
+long double Basis1(long double x)
+{
+	if(x < 2)
+		return(x*(19.*pow(x,2)-90.*x+108.)/72.);
+	else if(x <= 3)
+		return(-pow(x-3,3)/9.);
+	return(0);
+}
+
+long double Basis2(long double x)
+{
+	if(x < 2)
+		return(-pow(x,2)*(13.*x-36.)/72.);
+	else if(x < 3)
+		return(23.*pow(x,3)/72.-2.5*pow(x,2)+6.*x-4.);
+	else if(x <= 4)
+		return(-pow((x-4.)/2.,3));
+	return(0);
+}
+
+long double Basis3(long double x)
+{
+	if(x < 2)
+		return(pow(x,3)/24.);
+	else if(x < 3)
+		return(-3.*pow(x/2.,3)+2.5*pow(x,2)-5.*x+10./3.);
+	else if(x < 4)
+		return(11.*pow(x,3)/24.-5*pow(x,2)+17.5*x-115./6.);
+	else if(x <= 5)
+		return(-pow((x-5.),3)/6.);
+	return(0);
+}
+
+long double Basisn(long double x)
+{
+	if(x < 2)
+		return(0);
+	else if(x < 3)
+		return(pow(x-2.,3)/6.);
+	else if(x < 4)
+		return(-pow(x,3)/2.+5*pow(x,2)-16.*x+50./3.);
+	else if(x < 5)
+		return(pow(x,3)/2.-7*pow(x,2)+32.*x-142./3.);
+	else if(x <= 6)
+		return(-pow((x-6.),3)/6.);
+	return(0);
+}
+
 int main()
 {
 	//An 11x11 set of random data. The random data is uniform between -10 and 10.
