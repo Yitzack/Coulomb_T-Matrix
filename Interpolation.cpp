@@ -5,40 +5,40 @@ using namespace std;
 
 long double Basis0(long double x)	//Technically, Basis0-3 should only be called if x>=0, but if you're doing extrapolation, this is how it is done.
 {
-	if(x <= 2)
+	if(0 <= x && x <= 2)
 		return(-pow((x-2.)/2.,3));
 	return(0);
 }
 
 long double Basis1(long double x)
 {
-	if(x < 2)
+	if(0 <= x && x < 2)
 		return(x*(19.*pow(x,2)-90.*x+108.)/72.);
-	else if(x <= 3)
+	else if(2 <= x && x <= 3)
 		return(-pow(x-3,3)/9.);
 	return(0);
 }
 
 long double Basis2(long double x)
 {
-	if(x < 2)
+	if(0 <= x && x < 2)
 		return(-pow(x,2)*(13.*x-36.)/72.);
-	else if(x < 3)
+	else if(2 <= x && x < 3)
 		return(23.*pow(x,3)/72.-2.5*pow(x,2)+6.*x-4.);
-	else if(x <= 4)
+	else if(3 <= x && x <= 4)
 		return(-pow((x-4.)/2.,3));
 	return(0);
 }
 
 long double Basis3(long double x)
 {
-	if(x < 2)
+	if(0 <= x && x < 2)
 		return(pow(x,3)/24.);
-	else if(x < 3)
+	else if(2 <= x && x < 3)
 		return(-3.*pow(x/2.,3)+2.5*pow(x,2)-5.*x+10./3.);
-	else if(x < 4)
+	else if(3 <= x && x < 4)
 		return(11.*pow(x,3)/24.-5*pow(x,2)+17.5*x-115./6.);
-	else if(x <= 5)
+	else if(4 <= x && x <= 5)
 		return(-pow((x-5.),3)/6.);
 	return(0);
 }
@@ -56,6 +56,25 @@ long double Basisn(long double x)
 	else if(x <= 6)
 		return(-pow((x-6.),3)/6.);
 	return(0);
+}
+
+long double Basis_Matrix(int i, int j, int length) //i is the row from top, j is the column, and length is the length of the interpolation.
+{
+	static const long double endcaps[4][5] = {
+		{1,	0,	0,	0,	0},
+		{1./8.,	37./72.,23./72.,1./24.,	0},
+		{1./9.,	5./9.,	1./3.,	0,	0},
+		{1./8.,	17./24.,1./6.,	0,	0}};
+
+	static const long double interior[4] = {1./6., 2./3., 1./6., 0};
+
+	if(i < 4)	//Top left corner of matrix
+		return(endcaps[i][j]);
+	else if(i > length - 2)	//last 2 lines of bottom right corner of matrix
+			return(endcaps[length-i][3-j]);
+	else if(i > length - 4)	//first 2 lines of bottom right corner of matrix
+			return(endcaps[length-i][2-j]);
+	return(interior[j]);	//Middle of matrix
 }
 
 int main()
@@ -84,5 +103,34 @@ int main()
 {10.360705872738679, 84.22986617181519, -77.3084874896572, 51.62537892677248, -27.27738129195919, -10.834858239969604, 21.97368517867889, 4.375507071448398, -15.871570789781398, -19.398563226767966, -20.04874813339025}, 
 {-23.290880289444427, -5.556196099335599, 27.38610617929206, -49.46029917511592, 42.77457257294959, -6.8363755761665335, -12.794538640215611, 33.818983922951205, -35.13491267923053, 50.449804741085366, 8.270572768217662}, 
 {-0.3003219846464731, 4.849452602101386, -12.932826201279196, 9.421121550753252, -9.100253537397531, 17.91092122619949, -3.1570267116940123, -6.850192506944852, 13.639050431275091, -19.07370774905455, -2.8142696971582026}};
+	long double** Control_ptr = new long double*[11];
+	for(int i = 0; i < 11; i++)
+	{
+		Control_ptr[i] = new long double[11];
+		for(int j = 0; j < 11; j++)
+			Control_ptr[i][j] = Control[i][j];
+	}
+
+	Interpolation<long double> f(Control_ptr, 11, 11);
+
+	long double Matrix[11][4];
+	for(int i = 0; i <= 10; i++)
+		for(int j = 0; j < 4; j++)
+			Matrix[i][j] = Basis_Matrix(i, j, 10);
+
+	for(int i = 0; i < 11; i++)
+	{
+		for(int j = 0; j < 4; j++)
+			cout << Matrix[i][j] << ",";
+		cout << endl;
+	}
+
+	/*for(int i = 0; i <= 10; i++)
+	{
+		for(int j = 0; j <= 10; j++)
+			cout << f(i,j)/Data[i][j]-1. << ",";
+		cout << endl;
+	}*/
+
 	return(0);
 }
