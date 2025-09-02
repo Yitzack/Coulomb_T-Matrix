@@ -411,8 +411,6 @@ int main()
 			Data_ptr[i][j] = Data[i][j];
 	}
 
-	Interpolation<long double> f(Control_ptr, Length+1, Length+1);
-
 	long double Matrix[Length+1][4];
 	for(int i = 0; i <= Length; i++)
 		for(int j = 0; j < 4; j++)
@@ -437,6 +435,25 @@ int main()
 	{
 		for(int j = 0; j <= Length; j++)
 			cout << Data_ptr[i][j]/Control_ptr[i][j]-1. << ",";
+		cout << endl;
+	}
+
+	Interpolation<long double> f(Control_ptr, Length+1, Length+1);
+	Interpolation<long double> g(Data_ptr, Length+1, Length+1);
+
+	cout << endl;
+	for(int i = 0; i <= Length; i++)
+	{
+		for(int j = 0; j <= Length; j++)
+			cout << f(i,j)-g(i,j) << ",";
+		cout << endl;
+	}
+
+	cout << endl;
+	for(int i = 0; i <= Length; i++)
+	{
+		for(int j = 0; j <= Length; j++)
+			cout << g(i,j)/f(i,j)-1. << ",";
 		cout << endl;
 	}
 
