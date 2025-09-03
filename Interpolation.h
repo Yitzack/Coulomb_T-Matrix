@@ -25,8 +25,8 @@ class Interpolation
 		long double Basisn(long double);
 		long double Basis_Wrapper(long double, int);
 		long double Basis_Matrix(int, int, int);
-		void Matrix_Augment_Solve_Column(T**, long double[][4], int);
-		void Matrix_Augment_Solve_Row(T**, long double[][4], int);
+		void Matrix_Augment_Solve_X(T**, long double[][4], int, int);
+		void Matrix_Augment_Solve_Y(T**, long double[][4], int, int);
 };
 
 template <class T>
@@ -55,24 +55,36 @@ Interpolation<T>::Interpolation()
 }
 
 template <class T>
-Interpolation<T>::Interpolation(T** Control, int xSize, int ySize)	//I really wanted to derive the control points myself, but it is a lot easier to scrape them from Mathematica than figure out the matrix coefficents and inversion.
+Interpolation<T>::Interpolation(T** Data, int xSize, int ySize)	//I really wanted to derive the control points myself, but it is a lot easier to scrape them from Mathematica than figure out the matrix coefficents and inversion.
 {
-	xRange = xSize-1;
-	yRange = ySize-1;
+	xRange = xSize;
+	yRange = ySize;
 
-	control_points = new T*[xSize];
-	offset = new int**[xSize];
-	for(int i = 0; i < xSize; i++)
+	control_points = new T*[xSize+1];
+	offset = new int**[xSize+1];
+	for(int i = 0; i < xSize+1; i++)
 	{
-		control_points[i] = new T[ySize];
-		offset[i] = new int*[ySize];
-		for(int j = 0; j < ySize; j++)
+		control_points[i] = new T[ySize+1];
+		offset[i] = new int*[ySize+1];
+		for(int j = 0; j < ySize+1; j++)
 		{
-			control_points[i][j] = Control[i][j];
+			control_points[i][j] = Data[i][j];
 			offset[i][j] = new int[2];
 			offset[i][j][0] = i-5;
 			offset[i][j][1] = j-5;
 	}	}
+
+	long double MatrixX[xSize+1][4];
+	for(int i = 0; i <= xSize; i++)
+		for(int j = 0; j < 4; j++)
+			MatrixX[i][j] = Basis_Matrix(i, j, xSize);
+	Matrix_Augment_Solve_X(control_points, MatrixX, xSize, ySize);
+
+	long double MatrixY[ySize+1][4];
+	for(int i = 0; i <= ySize; i++)
+		for(int j = 0; j < 4; j++)
+			MatrixY[i][j] = Basis_Matrix(i, j, ySize);
+	Matrix_Augment_Solve_Y(control_points, MatrixY, xSize, ySize);
 
 	ready = true;
 }
@@ -357,7 +369,7 @@ long double Interpolation<T>::Basis_Matrix(int i, int j, int length) //i is the 
 }
 
 template <class T>
-void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Matrix[][4], int length)
+void Interpolation<T>::Matrix_Augment_Solve_X(T** Data_Ctrl, long double Matrix[][4], int lengthX, int lengthY)
 {
 	long double multiple;
 	long double normalize;
@@ -371,65 +383,65 @@ void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Ma
 	//Apply Row 0 and length to Row 1 and length-1
 	multiple = -1./8.;
 	normalize = 72./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[1][j] = normalize*(multiple*Data_Ctrl[0][j]+Data_Ctrl[1][j]);
-		Data_Ctrl[length-1][j] = normalize*(multiple*Data_Ctrl[length][j]+Data_Ctrl[length-1][j]);
+		Data_Ctrl[lengthX-1][j] = normalize*(multiple*Data_Ctrl[lengthX][j]+Data_Ctrl[lengthX-1][j]);
 	}
-	Matrix[1][0] = Matrix[length-1][3] = 0;
-	Matrix[1][1] = Matrix[length-1][2] = 1;
-	Matrix[1][2] = Matrix[length-1][1] = 23./37.;
-	Matrix[1][3] = Matrix[length-1][0] = 3./37.;
+	Matrix[1][0] = Matrix[lengthX-1][3] = 0;
+	Matrix[1][1] = Matrix[lengthX-1][2] = 1;
+	Matrix[1][2] = Matrix[lengthX-1][1] = 23./37.;
+	Matrix[1][3] = Matrix[lengthX-1][0] = 3./37.;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 1 and length-1 to Row 2 and length-2
 	multiple = -1./9.;
 	normalize = 37./18.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[2][j] = normalize*(multiple*Data_Ctrl[1][j]+Data_Ctrl[2][j]);
-		Data_Ctrl[length-2][j] = normalize*(multiple*Data_Ctrl[length-1][j]+Data_Ctrl[length-2][j]);
+		Data_Ctrl[lengthX-2][j] = normalize*(multiple*Data_Ctrl[lengthX-1][j]+Data_Ctrl[lengthX-2][j]);
 	}
-	Matrix[2][0] = Matrix[length-2][2] = 0;
-	Matrix[2][1] = Matrix[length-2][1] = 1;
-	Matrix[2][2] = Matrix[length-2][0] = 2./3.;
-	Matrix[2][3] = Matrix[length-2][3] = 0;
+	Matrix[2][0] = Matrix[lengthX-2][2] = 0;
+	Matrix[2][1] = Matrix[lengthX-2][1] = 1;
+	Matrix[2][2] = Matrix[lengthX-2][0] = 2./3.;
+	Matrix[2][3] = Matrix[lengthX-2][3] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 2 and length-2 to Row 3 and length-3
 	multiple = -1./8.;
 	normalize = 8./5.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[3][j] = normalize*(multiple*Data_Ctrl[2][j]+Data_Ctrl[3][j]);
-		Data_Ctrl[length-3][j] = normalize*(multiple*Data_Ctrl[length-2][j]+Data_Ctrl[length-3][j]);
+		Data_Ctrl[lengthX-3][j] = normalize*(multiple*Data_Ctrl[lengthX-2][j]+Data_Ctrl[lengthX-3][j]);
 	}
-	Matrix[3][0] = Matrix[length-3][2] = 0;
-	Matrix[3][1] = Matrix[length-3][1] = 1;
-	Matrix[3][2] = Matrix[length-3][0] = 4./15.;
-	Matrix[3][3] = Matrix[length-3][3] = 0;
+	Matrix[3][0] = Matrix[lengthX-3][2] = 0;
+	Matrix[3][1] = Matrix[lengthX-3][1] = 1;
+	Matrix[3][2] = Matrix[lengthX-3][0] = 4./15.;
+	Matrix[3][3] = Matrix[lengthX-3][3] = 0;
 
 	//Interior rows going to center
 	multiple = -1./6.;	//The factor will always be -1/6
-	for(i = 3; i < float(length)/2.-1; i++)
+	for(i = 3; i < float(lengthX)/2.-1; i++)
 	{
 		normalize = 1./(Matrix[i][2]*multiple+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthY; j++)
 		{
 			Data_Ctrl[i+1][j] = normalize*(multiple*Data_Ctrl[i][j]+Data_Ctrl[i+1][j]);
-			Data_Ctrl[length-i-1][j] = normalize*(multiple*Data_Ctrl[length-i][j]+Data_Ctrl[length-i-1][j]);
+			Data_Ctrl[lengthX-i-1][j] = normalize*(multiple*Data_Ctrl[lengthX-i][j]+Data_Ctrl[lengthX-i-1][j]);
 		}
-		Matrix[i+1][2] = Matrix[length-i-1][0] = Matrix[i+1][2]*normalize;
-		Matrix[i+1][0] = Matrix[length-i-1][2] = 0;
-		Matrix[i+1][1] = Matrix[length-i-1][1] = 1;
-		Matrix[i+1][3] = Matrix[length-i-1][3] = 0;
+		Matrix[i+1][2] = Matrix[lengthX-i-1][0] = Matrix[i+1][2]*normalize;
+		Matrix[i+1][0] = Matrix[lengthX-i-1][2] = 0;
+		Matrix[i+1][1] = Matrix[lengthX-i-1][1] = 1;
+		Matrix[i+1][3] = Matrix[lengthX-i-1][3] = 0;
 	}
 
 	//Middle one or two lines
-	if(length % 2 == 0)	//Even length has one line
+	if(lengthX % 2 == 0)	//Even length has one line
 	{
 		normalize = 1./(Matrix[i][2]*multiple*2.+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthY; j++)
 			Data_Ctrl[i+1][j] = normalize*(multiple*Data_Ctrl[i][j]+multiple*Data_Ctrl[i+2][j]+Data_Ctrl[i+1][j]);
 		Matrix[i+1][0] = 0;
 		Matrix[i+1][1] = 1;
@@ -440,7 +452,7 @@ void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Ma
 	{
 		multiple = -Matrix[i][2];
 		normalize = 1./(Matrix[i][2]*multiple+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthY; j++)
 		{
 			Data_Ctrl[i+1][j] = normalize*(multiple*Data_Ctrl[i][j]+Data_Ctrl[i+1][j]);
 			Data_Ctrl[i][j] = multiple*Data_Ctrl[i+1][j]+Data_Ctrl[i][j];
@@ -456,12 +468,12 @@ void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Ma
 	for(i; i >= 3; i--)
 	{
 		multiple = -Matrix[i][2];
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthY; j++)
 		{
 			Data_Ctrl[i][j] = multiple*Data_Ctrl[i+1][j]+Data_Ctrl[i][j];
-			Data_Ctrl[length-i][j] = multiple*Data_Ctrl[length-i-1][j]+Data_Ctrl[length-i][j];
+			Data_Ctrl[lengthX-i][j] = multiple*Data_Ctrl[lengthX-i-1][j]+Data_Ctrl[lengthX-i][j];
 		}
-		Matrix[i][2] = Matrix[length-i][0] = 0;
+		Matrix[i][2] = Matrix[lengthX-i][0] = 0;
 	}
 
 	//First and last 4 rows have to work the same way every time
@@ -471,32 +483,32 @@ void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Ma
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 3 and length-3 to Row 2 and length-2
 	multiple = -2./3.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[2][j] = multiple*Data_Ctrl[3][j]+Data_Ctrl[2][j];
-		Data_Ctrl[length-2][j] = multiple*Data_Ctrl[length-3][j]+Data_Ctrl[length-2][j];
+		Data_Ctrl[lengthX-2][j] = multiple*Data_Ctrl[lengthX-3][j]+Data_Ctrl[lengthX-2][j];
 	}
-	Matrix[2][2] = Matrix[length-2][0] = 0;
+	Matrix[2][2] = Matrix[lengthX-2][0] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 3 and length-3 to Row 1 and length-1
 	multiple = -3./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[1][j] = multiple*Data_Ctrl[3][j]+Data_Ctrl[1][j];
-		Data_Ctrl[length-1][j] = multiple*Data_Ctrl[length-3][j]+Data_Ctrl[length-1][j];
+		Data_Ctrl[lengthX-1][j] = multiple*Data_Ctrl[lengthX-3][j]+Data_Ctrl[lengthX-1][j];
 	}
-	Matrix[1][3] = Matrix[length-1][0] = 0;
+	Matrix[1][3] = Matrix[lengthX-1][0] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 2 and length-2 to Row 1 and length-1
 	multiple = -23./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthY; j++)
 	{
 		Data_Ctrl[1][j] = multiple*Data_Ctrl[2][j]+Data_Ctrl[1][j];
-		Data_Ctrl[length-1][j] = multiple*Data_Ctrl[length-2][j]+Data_Ctrl[length-1][j];
+		Data_Ctrl[lengthX-1][j] = multiple*Data_Ctrl[lengthX-2][j]+Data_Ctrl[lengthX-1][j];
 	}
-	Matrix[1][2] = Matrix[length-1][1] = 0;
+	Matrix[1][2] = Matrix[lengthX-1][1] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Row 0 and length are alrady in their finished state
@@ -504,7 +516,7 @@ void Interpolation<T>::Matrix_Augment_Solve_Column(T** Data_Ctrl, long double Ma
 }
 
 template <class T>
-void Interpolation<T>::Matrix_Augment_Solve_Row(T** Data_Ctrl, long double Matrix[][4], int length)
+void Interpolation<T>::Matrix_Augment_Solve_Y(T** Data_Ctrl, long double Matrix[][4], int lengthX, int lengthY)
 {
 	long double multiple;
 	long double normalize;
@@ -518,65 +530,65 @@ void Interpolation<T>::Matrix_Augment_Solve_Row(T** Data_Ctrl, long double Matri
 	//Apply Row 0 and length to Row 1 and length-1
 	multiple = -1./8.;
 	normalize = 72./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][1] = normalize*(multiple*Data_Ctrl[j][0]+Data_Ctrl[j][1]);
-		Data_Ctrl[j][length-1] = normalize*(multiple*Data_Ctrl[j][length]+Data_Ctrl[j][length-1]);
+		Data_Ctrl[j][lengthY-1] = normalize*(multiple*Data_Ctrl[j][lengthY]+Data_Ctrl[j][lengthY-1]);
 	}
-	Matrix[1][0] = Matrix[length-1][3] = 0;
-	Matrix[1][1] = Matrix[length-1][2] = 1;
-	Matrix[1][2] = Matrix[length-1][1] = 23./37.;
-	Matrix[1][3] = Matrix[length-1][0] = 3./37.;
+	Matrix[1][0] = Matrix[lengthY-1][3] = 0;
+	Matrix[1][1] = Matrix[lengthY-1][2] = 1;
+	Matrix[1][2] = Matrix[lengthY-1][1] = 23./37.;
+	Matrix[1][3] = Matrix[lengthY-1][0] = 3./37.;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 1 and length-1 to Row 2 and length-2
 	multiple = -1./9.;
 	normalize = 37./18.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][2] = normalize*(multiple*Data_Ctrl[j][1]+Data_Ctrl[j][2]);
-		Data_Ctrl[j][length-2] = normalize*(multiple*Data_Ctrl[j][length-1]+Data_Ctrl[j][length-2]);
+		Data_Ctrl[j][lengthY-2] = normalize*(multiple*Data_Ctrl[j][lengthY-1]+Data_Ctrl[j][lengthY-2]);
 	}
-	Matrix[2][0] = Matrix[length-2][2] = 0;
-	Matrix[2][1] = Matrix[length-2][1] = 1;
-	Matrix[2][2] = Matrix[length-2][0] = 2./3.;
-	Matrix[2][3] = Matrix[length-2][3] = 0;
+	Matrix[2][0] = Matrix[lengthY-2][2] = 0;
+	Matrix[2][1] = Matrix[lengthY-2][1] = 1;
+	Matrix[2][2] = Matrix[lengthY-2][0] = 2./3.;
+	Matrix[2][3] = Matrix[lengthY-2][3] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 2 and length-2 to Row 3 and length-3
 	multiple = -1./8.;
 	normalize = 8./5.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][3] = normalize*(multiple*Data_Ctrl[j][2]+Data_Ctrl[j][3]);
-		Data_Ctrl[j][length-3] = normalize*(multiple*Data_Ctrl[j][length-2]+Data_Ctrl[j][length-3]);
+		Data_Ctrl[j][lengthY-3] = normalize*(multiple*Data_Ctrl[j][lengthY-2]+Data_Ctrl[j][lengthY-3]);
 	}
-	Matrix[3][0] = Matrix[length-3][2] = 0;
-	Matrix[3][1] = Matrix[length-3][1] = 1;
-	Matrix[3][2] = Matrix[length-3][0] = 4./15.;
-	Matrix[3][3] = Matrix[length-3][3] = 0;
+	Matrix[3][0] = Matrix[lengthY-3][2] = 0;
+	Matrix[3][1] = Matrix[lengthY-3][1] = 1;
+	Matrix[3][2] = Matrix[lengthY-3][0] = 4./15.;
+	Matrix[3][3] = Matrix[lengthY-3][3] = 0;
 
 	//Interior rows going to center
 	multiple = -1./6.;	//The factor will always be -1/6
-	for(i = 3; i < float(length)/2.-1; i++)
+	for(i = 3; i < float(lengthY)/2.-1; i++)
 	{
 		normalize = 1./(Matrix[i][2]*multiple+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthX; j++)
 		{
 			Data_Ctrl[j][i+1] = normalize*(multiple*Data_Ctrl[j][i]+Data_Ctrl[j][i+1]);
-			Data_Ctrl[j][length-i-1] = normalize*(multiple*Data_Ctrl[j][length-i]+Data_Ctrl[j][length-i-1]);
+			Data_Ctrl[j][lengthY-i-1] = normalize*(multiple*Data_Ctrl[j][lengthY-i]+Data_Ctrl[j][lengthY-i-1]);
 		}
-		Matrix[i+1][2] = Matrix[length-i-1][0] = Matrix[i+1][2]*normalize;
-		Matrix[i+1][0] = Matrix[length-i-1][2] = 0;
-		Matrix[i+1][1] = Matrix[length-i-1][1] = 1;
-		Matrix[i+1][3] = Matrix[length-i-1][3] = 0;
+		Matrix[i+1][2] = Matrix[lengthY-i-1][0] = Matrix[i+1][2]*normalize;
+		Matrix[i+1][0] = Matrix[lengthY-i-1][2] = 0;
+		Matrix[i+1][1] = Matrix[lengthY-i-1][1] = 1;
+		Matrix[i+1][3] = Matrix[lengthY-i-1][3] = 0;
 	}
 
 	//Middle one or two lines
-	if(length % 2 == 0)	//Even length has one line
+	if(lengthY % 2 == 0)	//Even length has one line
 	{
 		normalize = 1./(Matrix[i][2]*multiple*2.+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthX; j++)
 			Data_Ctrl[j][i+1] = normalize*(multiple*Data_Ctrl[j][i]+multiple*Data_Ctrl[j][i+2]+Data_Ctrl[j][i+1]);
 		Matrix[i+1][0] = 0;
 		Matrix[i+1][1] = 1;
@@ -587,7 +599,7 @@ void Interpolation<T>::Matrix_Augment_Solve_Row(T** Data_Ctrl, long double Matri
 	{
 		multiple = -Matrix[i][2];
 		normalize = 1./(Matrix[i][2]*multiple+Matrix[i+1][1]);
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthX; j++)
 		{
 			Data_Ctrl[j][i+1] = normalize*(multiple*Data_Ctrl[j][i]+Data_Ctrl[j][i+1]);
 			Data_Ctrl[j][i] = multiple*Data_Ctrl[j][i+1]+Data_Ctrl[j][i];
@@ -603,12 +615,12 @@ void Interpolation<T>::Matrix_Augment_Solve_Row(T** Data_Ctrl, long double Matri
 	for(i; i >= 3; i--)
 	{
 		multiple = -Matrix[i][2];
-		for(j = 0; j <= length; j++)
+		for(j = 0; j <= lengthX; j++)
 		{
 			Data_Ctrl[j][i] = multiple*Data_Ctrl[j][i+1]+Data_Ctrl[j][i];
-			Data_Ctrl[j][length-i] = multiple*Data_Ctrl[j][length-i-1]+Data_Ctrl[j][length-i];
+			Data_Ctrl[j][lengthY-i] = multiple*Data_Ctrl[j][lengthY-i-1]+Data_Ctrl[j][lengthY-i];
 		}
-		Matrix[i][2] = Matrix[length-i][0] = 0;
+		Matrix[i][2] = Matrix[lengthY-i][0] = 0;
 	}
 
 	//First and last 4 rows have to work the same way every time
@@ -618,32 +630,32 @@ void Interpolation<T>::Matrix_Augment_Solve_Row(T** Data_Ctrl, long double Matri
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 3 and length-3 to Row 2 and length-2
 	multiple = -2./3.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][2] = multiple*Data_Ctrl[j][3]+Data_Ctrl[j][2];
-		Data_Ctrl[j][length-2] = multiple*Data_Ctrl[j][length-3]+Data_Ctrl[j][length-2];
+		Data_Ctrl[j][lengthY-2] = multiple*Data_Ctrl[j][lengthY-3]+Data_Ctrl[j][lengthY-2];
 	}
-	Matrix[2][2] = Matrix[length-2][0] = 0;
+	Matrix[2][2] = Matrix[lengthY-2][0] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 3 and length-3 to Row 1 and length-1
 	multiple = -3./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][1] = multiple*Data_Ctrl[j][3]+Data_Ctrl[j][1];
-		Data_Ctrl[j][length-1] = multiple*Data_Ctrl[j][length-3]+Data_Ctrl[j][length-1];
+		Data_Ctrl[j][lengthY-1] = multiple*Data_Ctrl[j][lengthY-3]+Data_Ctrl[j][lengthY-1];
 	}
-	Matrix[1][3] = Matrix[length-1][0] = 0;
+	Matrix[1][3] = Matrix[lengthY-1][0] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Apply Row 2 and length-2 to Row 1 and length-1
 	multiple = -23./37.;
-	for(j = 0; j <= length; j++)
+	for(j = 0; j <= lengthX; j++)
 	{
 		Data_Ctrl[j][1] = multiple*Data_Ctrl[j][2]+Data_Ctrl[j][1];
-		Data_Ctrl[j][length-1] = multiple*Data_Ctrl[j][length-2]+Data_Ctrl[j][length-1];
+		Data_Ctrl[j][lengthY-1] = multiple*Data_Ctrl[j][lengthY-2]+Data_Ctrl[j][lengthY-1];
 	}
-	Matrix[1][2] = Matrix[length-1][1] = 0;
+	Matrix[1][2] = Matrix[lengthY-1][1] = 0;
 
 	//First and last 4 rows have to work the same way every time
 	//Row 0 and length are alrady in their finished state
