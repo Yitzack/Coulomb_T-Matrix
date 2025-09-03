@@ -10,4 +10,4 @@ This a C++ header and object that is to function as a quantity with uncertainty.
 I'm not sure I need this, but it enables the programmed parallel manipulation of an array of data. It doesn't get a parallel speed up on purpose. However, the compiler may make a parallel optimization for the CPU.
 
 ## Interpolation.h
-This is an object for the storage and evaluation of a bicubic spline interpolation. Right now, it is ready to take a 2D array of control points. I need to figure out how to change the input from control points to data for interpolation.
+This is an object for the storage and evaluation of a bicubic spline interpolation. It only needs the data and the size and it assumes that it is evenly spaced. It takes `Interpolation(<T>**Data, int XLength, int YLength)` and will return a bicubic interpolation spline object of the data with type `<T>`.
