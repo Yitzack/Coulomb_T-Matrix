@@ -8,6 +8,7 @@ class Interpolation
 		~Interpolation();				//Deconstructor
 		Interpolation();				//Default Constructor
 		Interpolation(T**, int xSize, int ySize);	//Constructor with long double array
+		void Set(T**, int xSize, int ySize);
 		T operator()(long double x, long double y);	//Interpolation evaluation
 		void operator=(Interpolation<T>);		//Assignment operator
 		int MaxX();					//Return the largest x
@@ -55,8 +56,29 @@ Interpolation<T>::Interpolation()
 }
 
 template <class T>
-Interpolation<T>::Interpolation(T** Data, int xSize, int ySize)	//I really wanted to derive the control points myself, but it is a lot easier to scrape them from Mathematica than figure out the matrix coefficents and inversion.
+Interpolation<T>::Interpolation(T** Data, int xSize, int ySize)
 {
+	Set(Data, xSize, ySize);
+}
+
+template <class T>
+void Interpolation<T>::Set(T** Data, int xSize, int ySize)
+{
+	if(ready)
+	{
+		for(int i = 0; i <= xRange; i++)
+		{
+			for(int j = 0; j < yRange; j++)
+			{
+				delete offset[i][j];
+			}
+			delete offset[i];
+			delete control_points[i];
+		}
+		delete offset;
+		delete control_points;
+	}
+
 	xRange = xSize;
 	yRange = ySize;
 

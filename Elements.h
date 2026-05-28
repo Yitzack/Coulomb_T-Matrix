@@ -14,8 +14,8 @@ class Elements
 		Elements(T[4]);				//Array constructor
 		Elements(const Elements&);		//Copy constructor
 		void operator=(const Elements&);	//Assignment
-		void operator+=(const Elements &);	//Accumalate and assign
-		void operator-=(const Elements &);	//Deaccumalate and assign
+		void operator+=(const Elements &);	//Accumulate and assign
+		void operator-=(const Elements &);	//Deaccumulate and assign
 		bool operator==(T);			//This is looking for all components == 0, not any scalar. So, its actually looking for the 0 vector
 		bool operator>=(T);			//This is about accuracy, so all components must pass
 		bool operator>(const Elements<T>) const;//This is about accuracy, so all components must pass
@@ -30,11 +30,12 @@ class Elements
 		Elements<T> operator/(Elements<T>) const;//This is about accuracy, not the correct definition of division, so it is an element-wise division
 		Elements<T> operator/(T);		//Scalar divide
 		Elements<T> operator*(T);		//Scalar multiply
-		Elements<T> operator*(Elements);	//Vector multiply (not to be confused with cross product, but element by element multiply
+		Elements<T> operator*(Elements);	//Vector multiply (not to be confused with cross product, but element by element multiply)
+		T operator*(Elements);			//Scalar multiply (aka dot product)
 		Elements<T> abs(const Elements<T>&);	//Absolute value of all elements
 		Elements<T> abs() const;		//Absolute value of all elements
 		void null();				//Make the element the zero vector
-		T operator[](int);			//Returns the element at int. This is not the correct way to do this as it should return a pointer to the component so it can be altered. I can get away with it as I'm only printing the the contents to an output stream.
+		T operator[](int);			//Returns the element at int. This is not the correct way to do this as it should return a pointer to the component so it can be altered. I can get away with it as I'm only retrieving the contents of the array.
 	private:
 		T Array[4];			//The vector itself
 };
@@ -249,6 +250,17 @@ Elements<T> Elements<T>::operator*(Elements<T> A)
 	B.Array[1] = Array[1] * A.Array[1];
 	B.Array[2] = Array[2] * A.Array[2];
 	B.Array[3] = Array[3] * A.Array[3];
+	return(B);
+}
+
+template <class T>
+T Elements<T>::operator*(Elements<T> A)
+{
+	T B = 0;
+	B += Array[0] * A.Array[0];
+	B -= Array[1] * A.Array[1];
+	B -= Array[2] * A.Array[2];
+	B -= Array[3] * A.Array[3];
 	return(B);
 }
 
