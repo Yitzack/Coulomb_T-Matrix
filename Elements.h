@@ -1,4 +1,5 @@
 #include<cstdlib>
+#include<utility>
 #include"Around.h"
 using namespace std;
 
@@ -12,10 +13,10 @@ class Elements
 		Elements();				//Default constructor
 		Elements(T, T, T, T);			//Constructor from 4 elements
 		Elements(T[4]);				//Array constructor
-		Elements(const Elements&);		//Copy constructor
-		void operator=(const Elements&);	//Assignment
-		void operator+=(const Elements &);	//Accumulate and assign
-		void operator-=(const Elements &);	//Deaccumulate and assign
+		Elements(const Elements<T>&);		//Copy constructor
+		void operator=(const Elements<T>&);	//Assignment
+		void operator+=(const Elements<T> &);	//Accumulate and assign
+		void operator-=(const Elements<T> &);	//Deaccumulate and assign
 		bool operator==(T);			//This is looking for all components == 0, not any scalar. So, its actually looking for the 0 vector
 		bool operator>=(T);			//This is about accuracy, so all components must pass
 		bool operator>(const Elements<T>) const;//This is about accuracy, so all components must pass
@@ -23,15 +24,15 @@ class Elements
 		bool operator>(T);			//This is about accuracy, so all components must pass
 		bool operator<(T);			//This is about accuracy, so all components must pass
 		bool isnan();				//Equavalent to isnan(T) but for vector but called as A.isnan instead of isnan(A)
-		Elements<T> operator+(Elements);	//Sum of vectors
+		Elements<T> operator+(Elements<T>);	//Sum of vectors
 		Elements<T> operator+(T);		//Add a number to elements of vector
-		Elements<T> operator-(Elements);	//Difference of vectors
+		Elements<T> operator-(Elements<T>);	//Difference of vectors
 		Elements<T> operator-(T);		//Subtract a number from elements of vector
 		Elements<T> operator/(Elements<T>) const;//This is about accuracy, not the correct definition of division, so it is an element-wise division
 		Elements<T> operator/(T);		//Scalar divide
 		Elements<T> operator*(T);		//Scalar multiply
-		Elements<T> operator*(Elements);	//Vector multiply (not to be confused with cross product, but element by element multiply)
-		T operator*(Elements);			//Scalar multiply (aka dot product)
+		Elements<T> vector_mult(Elements<T>);	//Vector multiply (not to be confused with cross product, but element by element multiply)
+		T operator*(Elements<T>);		//Scalar multiply (aka dot product)
 		Elements<T> abs(const Elements<T>&);	//Absolute value of all elements
 		Elements<T> abs() const;		//Absolute value of all elements
 		void null();				//Make the element the zero vector
@@ -243,7 +244,7 @@ Elements<T> Elements<T>::operator*(T A)
 }
 
 template <class T>
-Elements<T> Elements<T>::operator*(Elements<T> A)
+Elements<T> Elements<T>::vector_mult(Elements<T> A)
 {
 	Elements<T> B;
 	B.Array[0] = Array[0] * A.Array[0];
