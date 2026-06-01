@@ -38,11 +38,19 @@ class Around
 		T Value();					//Return value
 		T Error();					//Return error estimate aka absolute error
 		T RelErr();					//Return the relative error (error/value)
-		//ostream& operator<<(ostream&, const Around<T>&);//Write Around<T> to stream conformal to Mathematica standard
+		ostream& operator<<(ostream&, const Around<T>&);//Write Around<T> to stream conformal to Mathematica standard
 	private:
 		T value;
 		T error;
 };
+
+template<class T>
+ostream& operator<<(ostream& os, const Around<T>& A)
+{
+	//os << "Around<T>[" << A.value << "," << A.error << "]" << flush;
+	os << A.value << "," << A.error << flush;
+	return(os);
+}
 
 template<class T>
 Around<T>::Around()
@@ -311,13 +319,5 @@ T Around<T>::RelErr()
 {
 	return(std::abs(error/value));
 }
-
-/*template<class T>
-ostream& operator<<(ostream& os, const Around<T>& A)
-{
-	//os << "Around<T>[" << A.value << "," << A.error << "]" << flush;
-	os << A.value << "," << A.error << flush;
-	return(os);
-}*/
 
 #endif
