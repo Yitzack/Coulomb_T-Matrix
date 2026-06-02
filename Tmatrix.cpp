@@ -14,6 +14,7 @@ Around<complex<long double>> Int_theta(int, int, int, long double, long double, 
 Around<complex<long double>> Int_theta_recurs(int, int, int, long double, long double, long double, int, long double, long double);
 Around<complex<long double>> Int_r(int, int, int, long double, long double, long double, long double);
 Around<complex<long double>> Int_r_recurs(int, int, int, long double, long double, long double, long double, int, long double, long double);
+complex<long double> Integrand(int, int, int, long double, long double, long double, long double, long double);
 
 int main()
 {
@@ -48,15 +49,15 @@ Around<complex<long double>> Int_theta_recurs(int l, int lp, int m, long double 
 	long double mid = (a+b)/2.l;
 	long double dist = b-a;
 
-	Answer = Int_r(l, lp, m, q, qp, phi, (a+b)/2.l);
+	Answer = Int_r(l, lp, m, q, qp, phi, mid)*sin(mid);
 	Answerh = Answer*QRule.wh(0);
 	Answerl = Answer*QRule.wl(0);
 	for(int i = 0; i < QRule.length(); i++)
 	{
-		Answer = Int_r(l, lp, m, q, qp, phi, mid+dist*QRule.Disp(i));
+		Answer = Int_r(l, lp, m, q, qp, phi, mid+dist*QRule.Disp(i))*sin(mid+dist*QRule.Disp(i));
 		Answerh += Answer*QRule.wh(i+1);
 		Answerl += Answer*QRule.wl(i+1);
-		Answer = Int_r(l, lp, m, q, qp, phi, mid-dist*QRule.Disp(i));
+		Answer = Int_r(l, lp, m, q, qp, phi, mid-dist*QRule.Disp(i))*sin(mid-dist*QRule.Disp(i));
 		Answerh += Answer*QRule.wh(i+1);
 		Answerl += Answer*QRule.wl(i+1);
 	}
@@ -73,11 +74,50 @@ Around<complex<long double>> Int_theta_recurs(int l, int lp, int m, long double 
 
 Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long double qp, long double phi, long double theta)
 {
-	return(Around<complex<long double>>(complex<long double>(0,0),complex<long double>(0,0)));
+	using namespace numbers;
+	Around<complex<long double>> Answer(complex<long double>(0,0),complex<long double>(0,0));
+	int n = lcm(l, lp);
+
+	for(int i = 0; i < n; i++)
+		Answer += Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, i*pi_v<long double>/n, (i+1)*pi_v<long double>/n);
+
+	return(Answer);
 }
 
 Around<complex<long double>> Int_r_recurs(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, int level, long double a, long double b)
 {
-	return(Around<complex<long double>>(complex<long double>(0,0),complex<long double>(0,0)));
+	GKRule QRule;
+	QRule.Rule = RuleType::GK16;
+	complex<long double> Answerh(0,0);
+	complex<long double> Answerl(0,0);
+	complex<long double> Answer;
+	Around<complex<long double>> Result;
+	long double mid = (a+b)/2.l;
+	long double dist = b-a;
+
+	Answer = Integrand(l, lp, m, q, qp, phi, theta, mid)*pow(mid,2);
+	Answerh = Answer*QRule.wh(0);
+	Answerl = Answer*QRule.wl(0);
+	for(int i = 0; i < QRule.length(); i++)
+	{
+		Answer = Integrand(l, lp, m, q, qp, phi, theta, mid+dist*QRule.Disp(i))*pow(mid+dist*QRule.Disp(i),2);
+		Answerh += Answer*QRule.wh(i+1);
+		Answerl += Answer*QRule.wl(i+1);
+		Answer = Integrand(l, lp, m, q, qp, phi, theta, mid-dist*QRule.Disp(i))*pow(mid-dist*QRule.Disp(i),2);
+		Answerh += Answer*QRule.wh(i+1);
+		Answerl += Answer*QRule.wl(i+1);
+	}
+
+	Result = Around<complex<long double>>(Answerh,Answerh-Answerl);
+	if(abs(Result.RelErr()) > 1e-6 && level < 5)
+	{
+		return(Int_r_recurs(l, lp, m, q, qp, phi, theta, level+1, a, mid)+Int_r_recurs(l, lp, m, q, qp, phi, theta, level+1, mid, b));
+	}
+	return(Result);
 }
 
+
+complex<long double> Integrand(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, long double r)
+{
+	return(complex<long double>(0,0));
+}
