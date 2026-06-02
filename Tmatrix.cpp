@@ -1,6 +1,7 @@
 #include<iostream>
 #include<complex>
 #include<numeric>
+#include<cmath>
 #include"Math_func.h"
 #include"Numerical_Tables.h"
 #include"Around.h"
@@ -31,10 +32,10 @@ Around<complex<long double>> Int_theta(int l, int lp, int m, long double q, long
 {
 	using namespace numbers;
 	Around<complex<long double>> Answer(complex<long double>(0,0),complex<long double>(0,0));
-	int n = lcm(l, lp);
+	int n = l+lp;
 
 	for(int i = 0; i < n; i++)
-		Answer += Int_theta_recurs(l, lp, m, q, qp, phi, 0, i*pi_v<long double>/n, (i+1)*pi_v<long double>/n);
+		Answer += Int_theta_recurs(l, lp, m, q, qp, phi, 0, acos(2.l*i/n-1), acos(2.l*(i+1)/n-1));
 
 	return(Answer);
 }
@@ -75,11 +76,18 @@ Around<complex<long double>> Int_theta_recurs(int l, int lp, int m, long double 
 Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long double qp, long double phi, long double theta)
 {
 	using namespace numbers;
-	Around<complex<long double>> Answer(complex<long double>(0,0),complex<long double>(0,0));
-	int n = lcm(l, lp);
+	long double r0 = fmaxl((l+1)/q, (lp+1)/qp);
+	long double delta_r = pi_v<long double>/(q+qp);
+	Around<complex<long double>> Answer = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, 0, r0);
+	Around<complex<long double>> Temp;
+	int i = 0;
 
-	for(int i = 0; i < n; i++)
-		Answer += Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, i*pi_v<long double>/n, (i+1)*pi_v<long double>/n);
+	do
+	{
+		Temp = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, r0+delta_r);
+		Answer += Temp;
+		i++;
+	}while((Temp/Answer).Value().real() > 1e-8 || (Temp/Answer).Value().imag() > 1e-8 || i < 10);
 
 	return(Answer);
 }
@@ -119,5 +127,5 @@ Around<complex<long double>> Int_r_recurs(int l, int lp, int m, long double q, l
 
 complex<long double> Integrand(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, long double r)
 {
-	return(complex<long double>(0,0));
+	return(Y(l, m, theta, phi)*conj(Y(l, m, theta, phi))*j(l, r*q)*j(lp, r*qp)*exp(-.05*r)/r);
 }
