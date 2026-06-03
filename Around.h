@@ -316,7 +316,7 @@ T Around<T>::RelErr()
 template<class T>
 ostream& operator<<(ostream& os, const Around<T>& A)
 {
-	os << A.value << "," << A.error;
+	os << A.value << "±" << A.error;
 	return(os);
 }
 
