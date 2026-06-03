@@ -21,10 +21,10 @@ complex<long double> Integrand(int, int, int, long double, long double, long dou
 long double f0(long double q, long double qp)
 {
 	if(q == 0)
-		return(1.l/pow(qp,2));
+		return(1.l/(pow(qp,2)+.0025));
 	else if(qp == 0)
 		return(1.l/pow(q,2));
-	return(log(pow(q+qp,2)/pow(q-qp,2))/(4*q*qp));
+	return(log((pow(q+qp,2)+.0025)/(pow(q-qp,2)+.0025))/(4*q*qp));
 }
 
 long double f1(long double q, long double qp)
@@ -68,13 +68,29 @@ int main()
 	Around<complex<long double>> Ans;
 	for(long double q = 0; q < 10; q++)
 	{
-		for(long double qp = q+1; qp < 10; qp++)
+		for(long double qp = q; qp < 10; qp++)
 		{
 			Ans = Int_phi(0,0,0,q,qp);
 			real = Around<long double>(Ans.Value().real(), Ans.Error().real());
-			cout << q << " " << qp << setw(10) << f0(q,qp) << setw(14) << real << setw(14) << real/f0(q,qp)-1.l << endl;
+			cout << q << " " << qp << setw(10) << f0(q,qp) << setw(14) << real << setw(14) << (real.Value()/f0(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
 		}
 	}
+	/*for(int l = 0; l <= 5; l++)
+	{
+		for(int lp = 0; lp <= 5; lp++)
+		{
+			for(int m = -min(l,lp); m <= min(l,lp); m++)
+			{
+				Ans = Int_phi(l, lp, m, 0, 0);
+				real = Around<long double>(Ans.Value().real(), Ans.Error().real());
+				cout << l << " " << lp << " " << m << " " << flush;
+				if(l == lp)
+					cout << 1 << setw(14) << real << setw(14) << real.RelErr() << endl;
+				else
+					cout << 0 << setw(14) << real << setw(14) << real.RelErr() << endl;
+			}
+		}
+	}*/
 
 	return(0);
 }
@@ -125,30 +141,37 @@ Around<complex<long double>> Int_theta_recurs(int l, int lp, int m, long double 
 	Answer = Around<complex<long double>>(Answerh.Value(),complex<long double>(
 		sqrt(pow(Answerh.Value().real()-Answerl.Value().real(),2)+pow(Answerh.Error().real(),2)),
 		sqrt(pow(Answerh.Value().imag()-Answerl.Value().imag(),2)+pow(Answerh.Error().imag(),2))));
-	if(abs(Answer.RelErr()) > 1e-10 && level < 5)
+	if(abs(Answer.RelErr()) > 1e-5 && level < 5)
 	{
 		return(Int_theta_recurs(l, lp, m, q, qp, phi, level+1, a, mid)+Int_theta_recurs(l, lp, m, q, qp, phi, level+1, mid, b));
 	}
+
 	return(Answer);
 }
 
 Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long double qp, long double phi, long double theta)
 {
 	using namespace numbers;
-	long double r0 = (max(l,lp)+1)/fmax(q,qp);
-	long double delta_r = pi_v<long double>/(q+qp);
-	Around<complex<long double>> Answer = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, 0, r0);
+	long double r0 = pi_v<long double>/fmax(q,qp)+(long double)(max(l,lp));
+	long double delta_r = 9.l*pi_v<long double>/(q+qp);
+	Around<complex<long double>> Answer;
 	Around<complex<long double>> Temp;
 	int i = 0;
 
+	if(isinf(delta_r) || isnan(delta_r))
+	{
+		r0 = 1;
+		delta_r = 1;
+	}
+
+	Answer = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, 0, r0);
 	do
 	{
 		Temp = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, r0+delta_r);
 		Answer += Temp;
 		i++;
 		r0 += delta_r;
-	}while(((Temp/Answer).Value().real() > 1e-8 || (Temp/Answer).Value().imag() > 1e-8) || i < 10);
-	Answer += Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, 10);
+	}while(((Temp/Answer).Value().real() > 1e-8 || (Temp/Answer).Value().imag() > 1e-8) || r0-delta_r < 250);
 
 	return(Answer);
 }
@@ -184,11 +207,12 @@ Around<complex<long double>> Int_r_recurs(int l, int lp, int m, long double q, l
 	{
 		return(Int_r_recurs(l, lp, m, q, qp, phi, theta, level+1, a, mid)+Int_r_recurs(l, lp, m, q, qp, phi, theta, level+1, mid, b));
 	}
+
 	return(Result);
 }
 
 
 complex<long double> Integrand(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, long double r)
 {
-	return(Y(l, m, theta, phi)*conj(Y(l, m, theta, phi))*j(l, r*q)*j(lp, r*qp)/r);
+	return(Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi))*j(l, r*q)*j(lp, r*qp)*exp(-r/20.l)/r);
 }
