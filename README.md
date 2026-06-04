@@ -11,3 +11,14 @@ I'm not sure I need this, but it enables the programmed parallel manipulation of
 
 ## Interpolation.h
 This is an object for the storage and evaluation of a bicubic spline interpolation. It only needs the data and the size and it assumes that it is evenly spaced. It takes `Interpolation(<T>**Data, int XLength, int YLength)` and will return a bicubic interpolation spline object of the data with type `<T>`.
+
+## Math_func.h
+This is a library of special functions useful to the project. This requires the numbers names space of the standard library. I think that is a new thing in the C++ 2023, so -std=c++23 is needed if included.
+
+## Numerical_Tables.h
+This is an object that has a bunch of tables for numerical integration of Gauss-Kronrod and Gauss-Legender Quadrature. The tables are not dynmically created. It has 16th, 37th, and 97th order Gauss-Kronrod rules.
+
+## Tmatrix.cpp
+This is the main program for executing the work. Compile directions:
+
+`g++ Tmatrix.cpp -std=c++23 [-O[0-3]]`
