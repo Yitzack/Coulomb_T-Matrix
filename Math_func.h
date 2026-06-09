@@ -1,9 +1,20 @@
 //Special math functions
 #include<complex>
+#include<cmath>
 #include<numbers>
 #include<iostream>
 #include"Elements.h"
 using namespace std;
+
+long double j(unsigned int, long double);
+complex<long double> Y(unsigned int, int, long double, long double);
+Elements<long double> Vboosted(Elements<long double>, Elements<long double>, long double);
+Elements<long double> Vsphere(Elements<long double>, Elements<long double>, long double);
+Elements<long double> r_spherical(Elements<long double>, Elements<long double>, long double);
+Elements<long double> rho_boosted(Elements<long double>, Elements<long double>, long double);
+long double Si(long double);
+long double Ci(long double);
+complex<long double> Ei(complex<long double>);
 
 //Spherical Bessel function wrapper (totally not needed, but I'll probably forget what its called when I want it.
 inline long double j(unsigned int l, long double r) {return(sph_bessel(l ,r));}
@@ -62,18 +73,48 @@ long double Ci(long double x)
 //Sine Integral for large positive definite x
 long double Si(long double x)
 {
-	return(-(((12+22*pow(x,2)+pow(x,4))*cos(x)+x*(18+pow(x,2))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4)))+numbers::pi_v<long double>/2.l);
+	return(-((12+22*pow(x,2)+pow(x,4))*cos(x)+x*(18+pow(x,2))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4)))+numbers::pi_v<long double>/2.l);
 }
 
+//Exponential Integral Ei for large abs(x)
+complex<long double> Ei(complex<long double> z)
+{
+	using namespace numbers;
+	complex<long double> Answer;
+	complex<long double> Terms(0);
+	complex<long double> Temp;
+	int n = 0;
 
+	if(abs(z) < 20)
+	{
+		Answer = 0;
+		n = 1;
+		do
+		{
+			Temp = pow(z,n)/((long double)(n)*tgammal(n+1));
+			Answer += Temp;
+			n++;
+		}while(abs(Temp)/abs(Answer) > 1e-15 && n <= 100);
+cout << n << " " << abs(Temp)/abs(Answer) << " " << abs(Temp) << " " << abs(Answer-Temp) << endl;
+		return(Answer+egamma_v<long double>+log(z));
+	}
 
+	if(z.imag() > 0)
+		Answer = complex<long double>(0,pi_v<long double>);
+	else if(z.imag() < 0)
+		Answer = complex<long double>(0,-pi_v<long double>);
+	else
+		Answer = 0;
+	do
+	{
+		Temp = tgammal(n+1)/pow(z,n);
+		Terms += Temp;
+		n++;
+	}while(n <= 100 && abs(Terms) > abs(Terms-Temp));
+cout << n << " " << abs(Temp)/abs(Terms) << " " << abs(Terms) << " " << abs(Terms-Temp) << endl;
+	if(abs(Terms) > abs(Terms-Temp))	//quit because it started diverging
+		Terms -= Temp;
 
-
-
-
-
-
-
-
-
+	return(exp(z)*Terms/z+Answer);
+}
 
