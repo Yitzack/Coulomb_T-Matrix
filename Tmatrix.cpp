@@ -87,15 +87,15 @@ int main()
 					if(l == lp && lp == 0)
 						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f0(q,qp) << setw(14) << real << setw(14) << (real.Value()/f0(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
 					else if(l == lp && lp == 1)
-						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f1(q,qp) << setw(14) << real << setw(14) << (real.Value()/f0(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
+						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f1(q,qp) << setw(14) << real << setw(14) << (real.Value()/f1(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
 					else if(l == lp && lp == 2)
-						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f2(q,qp) << setw(14) << real << setw(14) << (real.Value()/f0(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
+						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f2(q,qp) << setw(14) << real << setw(14) << (real.Value()/f2(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
 					else if(l == lp && lp == 3)
-						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f3(q,qp) << setw(14) << real << setw(14) << (real.Value()/f0(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
+						cout << l << " " << lp << " " << q << " " << qp << setw(12) << f3(q,qp) << setw(14) << real << setw(14) << (real.Value()/f3(q,qp)-1.l)*100.l << setw(14) << real.RelErr() << endl;
+					else if(l == lp && lp >= 4)
+						cout << l << " " << lp << " " << q << " " << qp << setw(12) << "not 0" << setw(14) << real << setw(12) << real.RelErr() << endl;
 					else if(l != lp)
 						cout << l << " " << lp << " " << q << " " << qp << setw(12) << "0" << setw(14) << real << setw(12) << real.RelErr() << endl;
-					else
-						cout << l << " " << lp << " " << q << " " << qp << setw(12) << "not 0" << setw(14) << real << setw(12) << real.RelErr() << endl;
 				}
 			}
 		}
@@ -181,7 +181,7 @@ Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long dou
 	int i = 0;
 
 	if(!This_one)
-		return(Answer);
+		return(Answer*Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi)));
 
 	if(isinf(delta_r) || isnan(delta_r))
 	{
@@ -212,12 +212,12 @@ Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long dou
 		r0 += delta_r;
 		if(abs(Answer.Value().real()/Expected-1.l) < 1e-8)
 		{
-			cerr << l << " " << lp << " " << m << " " << q << " " << qp << " " << Answer << " " << Answer.Value().real()/Expected-1.l << " " << r0-delta_r << " " << i << " " << (r0-delta_r)*(q+qp)/pi_v<long double> << endl;
+			cerr << l << " " << lp << " " << q << " " << qp << " " << Answer << " " << Answer.Value().real()/Expected-1.l << " " << r0-delta_r << " " << i << " " << (r0-delta_r)*(q+qp)/pi_v<long double> << endl;
 			break;
 		}
 	}while(((Temp/Answer).Value().real() > 1e-15 || (Temp/Answer).Value().imag() > 1e-15) || r0-delta_r < 500);
 
-	return(Answer);
+	return(Answer*Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi)));
 }
 
 Around<complex<long double>> Int_r_recurs(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, int level, long double a, long double b)
@@ -258,5 +258,6 @@ Around<complex<long double>> Int_r_recurs(int l, int lp, int m, long double q, l
 
 complex<long double> Integrand(int l, int lp, int m, long double q, long double qp, long double phi, long double theta, long double r)
 {
-	return(Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi))*j(l, r*q)*j(lp, r*qp)*exp(-r/20.l)/r);
+	return(j(l, r*q)*j(lp, r*qp)*exp(-r/20.l)/r);
+	//return(Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi))*j(l, r*q)*j(lp, r*qp)*exp(-r/20.l)/r);
 }
