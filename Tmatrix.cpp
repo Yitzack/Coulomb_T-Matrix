@@ -178,7 +178,6 @@ Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long dou
 	long double delta_r = 9.l*pi_v<long double>/(q+qp);
 	static Around<complex<long double>> Answer;
 	Around<complex<long double>> Temp;
-	int i = 0;
 
 	if(!This_one)
 		return(Answer*Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi)));
@@ -189,33 +188,16 @@ Around<complex<long double>> Int_r(int l, int lp, int m, long double q, long dou
 		delta_r = 1;
 	}
 
-	long double Expected;
-	Expected = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, 0, r0).Value().real();
-	do
-	{
-		Temp = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, r0+delta_r);
-		Expected += Temp.Value().real();
-		i++;
-		r0 += delta_r;
-	}while(r0-delta_r < 500);
-	Expected += Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, 500).Value().real();
-
-	r0 = pi_v<long double>/fmax(q,qp)+(long double)(max(l,lp));
-	if(isinf(r0) || isnan(r0))
-		r0 = 1;
 	Answer = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, 0, r0);
 	do
 	{
 		Temp = Int_r_recurs(l, lp, m, q, qp, phi, theta, 0, r0, r0+delta_r);
 		Answer += Temp;
-		i++;
-		r0 += delta_r;
-		if(abs(Answer.Value().real()/Expected-1.l) < 1e-8)
-		{
-			cerr << l << " " << lp << " " << q << " " << qp << " " << Answer << " " << Answer.Value().real()/Expected-1.l << " " << r0-delta_r << " " << i << " " << (r0-delta_r)*(q+qp)/pi_v<long double> << endl;
+		if(abs(Temp.Value().real()/jj_Yukawa(l, lp, q, qp, r0, r0+delta_r)-1.l) < 1e-10)
 			break;
-		}
+		r0 += delta_r;
 	}while(((Temp/Answer).Value().real() > 1e-15 || (Temp/Answer).Value().imag() > 1e-15) || r0-delta_r < 500);
+	Answer += complex<long double>(jj_Yukawa(l, lp, q, qp, r0),0);
 
 	return(Answer*Y(l, m, theta, phi)*conj(Y(lp, m, theta, phi)));
 }
