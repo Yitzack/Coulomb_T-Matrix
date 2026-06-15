@@ -87,7 +87,15 @@ long double jj_Yukawa(int l, int lp, long double q, long double qp, long double 
 	{
 		answer += (phase[i]*Ei(ExpIntgrals[i])).real();
 	}
-	answer += 2.l*numbers::pi_v<long double>*(sin_diff-sin_sum);	//b->inf limit of jj_Yukawa(l,lp,q,qp,a,b)
+
+	//b->inf limit of jj_Yukawa(l,lp,q,qp,a,b)
+	if(q-qp < 0)
+		answer -= 2.l*pi_v<long double>*(sin_sum+sin_diff);
+	else if(q-qp > 0)
+		answer -= 2.l*pi_v<long double>*(sin_sum-sin_diff);
+	else
+		answer -= 2.l*pi_v<long double>*sin_sum;
+
 	answer /= 4.l*q*qp;
 
 	return(answer);
