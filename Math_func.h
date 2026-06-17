@@ -298,8 +298,34 @@ long double jj_on_r(int l, int lp, long double q, long double qp, long double a,
 	return((-cos_diff*Ci(a*(q-qp))+cos_diff*Ci(b*(q-qp))+cos_sum*Ci(-a*(q+qp))-cos_sum*Ci(-b*(q+qp))+sin_diff*Si(a*(q-qp))-sin_diff*Si(b*(q-qp))+sin_sum*Si(a*(q+qp))-sin_sum*Si(b*(q+qp))).real()/(2.l*q*qp));
 }
 
-//Spherical Bessel function wrapper (totally not needed, but I'll probably forget what its called when I want it.
-inline long double j(unsigned int l, long double r) {return(sph_bessel(l ,r));}
+//Spherical Bessel (this recursion algorithm runs in 2.75 ns to the standard algorithm's 6.69 us on -O3 and 17.25 us instead of 52.24 ms without optimization)
+long double j(unsigned int l, long double r)
+{
+	//check for r==0
+	if(r == 0) return(l==0?1.l:0);
+
+	if(r < .0433371*pow(l,1.73982))	//asymptotic form
+		return(pow(r,l)*pow(2,l)*tgammal(l+1)/tgammal(2*l+2)*(1.l-pow(r,2)/(long double)(6+4*l)+pow(r,4)/(long double)(120+128*l+32*pow(l,2))));
+
+	//recursion
+	long double jn1 = sin(r)/r;
+	long double jn = sin(r)/pow(r,2)-cos(r)/r;
+	long double temp;
+
+	if(l == 0)
+		return(jn1);
+	else if(l == 1)
+		return(jn);
+
+	for(int i = 1; i < l; i++)
+	{
+		temp = (2*i+1)*jn/r-jn1;
+		jn1 = jn;
+		jn = temp;
+	}
+
+	return(jn);
+}
 
 //Spherical harmonics
 complex<long double> Y(unsigned int l, int m, long double theta, long double phi)
