@@ -372,6 +372,21 @@ Elements<long double> r_spherical(Elements<long double> P, Elements<long double>
 				 rho[3]));
 }
 
+long double Hypergeometric2F1(long double a, long double b, long double c, long double z)
+{
+	long double term = 1;
+	long double sum = 1;
+	int k = 0;
+
+	for(k; k <= 10000 && abs(term) > 1e-15*abs(sum); k++)
+	{
+		term *= (a+k)*(b+k)*z/((c+k)*(k+1));
+		sum += term;
+	}
+
+	return(sum);
+}
+
 //Cosine Integral for large positive definite x
 complex<long double> Ci(long double x)
 {
@@ -424,8 +439,6 @@ complex<long double> Ei(complex<long double> z)
 		Terms += Temp;
 		n++;
 	}while(n <= 100);
-
-//cout << n << " " << abs(Terms) << " " << abs(Terms-Temp) << endl;
 
 	return(exp(z)*Terms/z+Answer);
 }

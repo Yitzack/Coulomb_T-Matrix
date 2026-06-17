@@ -262,7 +262,7 @@ bool Around<T>::operator>=(Around<T> A)
 template<class T>
 bool Around<T>::operator==(T A)
 {
-	if(value == A)
+	if(std::abs(A-this->value) < this->error)
 		return(true);
 	return(false);
 }
