@@ -14,6 +14,7 @@ Elements<long double> Vboosted(Elements<long double>, Elements<long double>, lon
 Elements<long double> Vsphere(Elements<long double>, Elements<long double>, long double);
 Elements<long double> r_spherical(Elements<long double>, Elements<long double>, long double);
 Elements<long double> rho_boosted(Elements<long double>, Elements<long double>, long double);
+long double Hypergeometric2F1(long double, long double, long double, long double);
 long double Si(long double);
 complex<long double> Ci(long double);
 complex<long double> Ei(complex<long double>);
