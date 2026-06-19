@@ -424,16 +424,16 @@ long double Hypergeometric2F1(long double a, long double b, long double c, long 
 complex<long double> Ci(long double x)
 {
 	if(x > 0)
-		return((x*(18+pow(x,2))*cos(x)+(12+22*pow(x,2)+pow(x,4))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4))));
-	return(complex<long double>((x*(18+pow(x,2))*cos(x)+(12+22*pow(x,2)+pow(x,4))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4))),numbers::pi_v<long double>));
+		return(((-1200-1608*pow(x,2)-106*pow(x,4)-pow(x,6))*cos(x)+x*(3408+1960*pow(x,2)+110*pow(x,4)+pow(x,6))*sin(x))/(576+5760*pow(x,2)+2160*pow(x,4)+112*pow(x,6)+pow(x,8)));
+	return(complex<long double>(((-1200-1608*pow(x,2)-106*pow(x,4)-pow(x,6))*cos(x)+x*(3408+1960*pow(x,2)+110*pow(x,4)+pow(x,6))*sin(x))/(576+5760*pow(x,2)+2160*pow(x,4)+112*pow(x,6)+pow(x,8)),numbers::pi_v<long double>));
 }
 
 //Sine Integral for large positive definite x
 long double Si(long double x)
 {
 	if(x > 0)
-		return(-((12+22*pow(x,2)+pow(x,4))*cos(x)+x*(18+pow(x,2))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4)))+numbers::pi_v<long double>/2.l);
-	return(-((12+22*pow(x,2)+pow(x,4))*cos(x)+x*(18+pow(x,2))*sin(x))/(x*(36+24*pow(x,2)+pow(x,4)))-numbers::pi_v<long double>/2.l);
+		return(-x*(3408+1960*pow(x,2)+110*pow(x,4)+pow(x,6))*cos(x)-(1200+1608*pow(x,2)+106*pow(x,4)+pow(x,6))*sin(x))/(576+5760*pow(x,2)+2160*pow(x,4)+112*pow(x,6)+x^8))+numbers::pi_v<long double>/2.l);
+	return(-x*(3408+1960*pow(x,2)+110*pow(x,4)+pow(x,6))*cos(x)-(1200+1608*pow(x,2)+106*pow(x,4)+pow(x,6))*sin(x))/(576+5760*pow(x,2)+2160*pow(x,4)+112*pow(x,6)+x^8))-numbers::pi_v<long double>/2.l);
 }
 
 //Exponential Integral Ei for large abs(x)
