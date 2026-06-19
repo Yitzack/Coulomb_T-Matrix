@@ -8,6 +8,11 @@
 #include"Elements.h"
 using namespace std;
 
+long double jj_Yukawa(int, int, long double, long double, long double);
+long double jj_Yukawa(int, int, long double, long double, long double, long double);
+long double Extrema_jj_on_r(int, int, long double, long double, long double);
+long double jj_on_r(int, int, long double, long double, long double);
+long double jj_on_r(int, int, long double, long double, long double, long double);
 long double j(unsigned int, long double);
 complex<long double> Y(unsigned int, int, long double, long double);
 Elements<long double> Vboosted(Elements<long double>, Elements<long double>, long double);
@@ -172,6 +177,33 @@ long double jj_Yukawa(int l, int lp, long double q, long double qp, long double 
 	answer /= 4.l*q*qp;
 
 	return(answer);
+}
+
+//returns any extrema of jj_on_r for the tail near r.
+long double Extrema_jj_on_r(int l, int lp, long double q, long double qp, long double r)
+{
+	long double xi;
+	long double xi1;
+	long double h = 1e-4;
+	long double extrema = 0;
+
+	for(long double test = r-1; test <= r+1; test += .01)	//Find the most extrem value within .5 of r and use that as the feed for Newton's method.
+	{
+		if(abs(jj_on_r(l, lp, q, qp, test)) > extrema)
+		{
+			extrema = jj_on_r(l, lp, q, qp, test);
+			xi = test;
+		}
+	}
+
+	xi1 = xi - h*(jj_on_r(l, lp, q, qp, xi-h)-jj_on_r(l, lp, q, qp, xi+h))/(-2*jj_on_r(l, lp, q, qp, xi-h)+4*jj_on_r(l, lp, q, qp, xi)-2*jj_on_r(l, lp, q, qp, xi+h));
+	while(abs(xi1-xi)>1e-4)
+	{
+		xi = xi1;
+		xi1 = xi - h*(jj_on_r(l, lp, q, qp, xi-h)-jj_on_r(l, lp, q, qp, xi+h))/(-2*jj_on_r(l, lp, q, qp, xi-h)+4*jj_on_r(l, lp, q, qp, xi)-2*jj_on_r(l, lp, q, qp, xi+h));
+	}
+
+	return(xi1);
 }
 
 //int_a^inf j_l(r q)j_l'(r q')/r*r^2dr
